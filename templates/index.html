@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHIPSTACK - The Official Jackpot Gallery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="grid-background">
+    <div class="h-1 bg-gradient-to-r from-cyan-400 via-pink-500 to-purple-500"></div>
+
+    <div class="min-h-screen">
+        <nav class="navbar bg-black border-b-2 border-cyan-500 border-opacity-50">
+            <div class="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex justify-between items-center">
+                <a href="{{ url_for('index') }}" class="press-start text-xs sm:text-sm neon-cyan hover:neon-pink transition">
+                    ♣️ CHIPSTACK
+                </a>
+                <div class="flex gap-4 sm:gap-8">
+                    <a href="{{ url_for('index') }}" class="nav-link text-xs sm:text-sm neon-cyan hover:neon-pink transition">
+                        HOME
+                    </a>
+                    <a href="#" onclick="alert('Leaderboard coming soon!'); return false;" class="nav-link text-xs sm:text-sm text-pink-400 hover:neon-pink opacity-60 transition">
+                        LEADERBOARD
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <header class="py-6 sm:py-8 px-3 sm:px-4 border-b border-cyan-500 border-opacity-30 scanlines">
+            <div class="max-w-6xl mx-auto text-center">
+                <h1 class="press-start text-xl sm:text-2xl md:text-4xl mb-2 neon-cyan leading-tight">
+                    ♣️ CHIPSTACK
+                </h1>
+                <p class="text-cyan-400 text-xs sm:text-sm md:text-lg tracking-widest">
+                    &lt; THE OFFICIAL JACKPOT GALLERY /&gt;
+                </p>
+            </div>
+        </header>
+
+        <main class="max-w-6xl mx-auto px-3 sm:px-4 py-8 sm:py-16">
+            <section class="text-center mb-12 sm:mb-16">
+                <h2 class="press-start text-lg sm:text-3xl md:text-5xl mb-4 sm:mb-6 neon-pink leading-tight">
+                    SHOWCASE YOUR MASTERPIECE
+                </h2>
+                <p class="text-cyan-300 text-xs sm:text-sm md:text-lg mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
+                    Level up your portfolio. Share your projects with the Hack Club community. 
+                    Get featured in the Official Jackpot Gallery!
+                </p>
+                
+                <button 
+                    id="toggleFormBtn"
+                    class="btn-neon px-4 sm:px-8 py-2 sm:py-3 rounded-lg press-start text-xs sm:text-sm mb-12 pulse"
+                >
+                    SUBMIT PROJECT ♠️
+                </button>
+            </section>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="mb-4 sm:mb-6 p-3 sm:p-4 rounded-lg alert-{{ category }}">
+                            <p class="press-start text-xs sm:text-sm">{{ message }}</p>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <section id="formSection" class="hidden mb-12 sm:mb-16">
+                <div class="neon-border card-neon rounded-lg p-4 sm:p-8 max-w-2xl mx-auto mx-3">
+                    <h3 class="press-start text-lg sm:text-2xl neon-cyan mb-4 sm:mb-6">SUBMIT YOUR PROJECT</h3>
+                    
+                    <form method="POST" action="{{ url_for('submit') }}" class="space-y-3 sm:space-y-4">
+                        <div>
+                            <label class="block text-cyan-400 text-xs sm:text-sm press-start mb-2">PROJECT TITLE *</label>
+                            <input 
+                                type="text"
+                                name="title"
+                                placeholder="Enter project title..."
+                                required
+                                class="form-input w-full px-3 sm:px-4 py-2 rounded text-sm"
+                            >
+                        </div>
+
+                        <div>
+                            <label class="block text-cyan-400 text-xs sm:text-sm press-start mb-2">DESCRIPTION *</label>
+                            <textarea
+                                name="description"
+                                placeholder="Describe your project and what you learned..."
+                                required
+                                class="form-input w-full px-3 sm:px-4 py-2 rounded h-20 sm:h-24 text-sm"
+                            ></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-cyan-400 text-xs sm:text-sm press-start mb-2">YOUR NAME *</label>
+                            <input 
+                                type="text"
+                                name="submitter"
+                                placeholder="Your name..."
+                                required
+                                class="form-input w-full px-3 sm:px-4 py-2 rounded text-sm"
+                            >
+                        </div>
+
+                        <div>
+                            <label class="block text-cyan-400 text-xs sm:text-sm press-start mb-2">HOURS SPENT *</label>
+                            <input 
+                                type="number"
+                                name="hours"
+                                placeholder="Hours (e.g., 48.5)"
+                                required
+                                step="0.5"
+                                min="0"
+                                class="form-input w-full px-3 sm:px-4 py-2 rounded text-sm"
+                            >
+                        </div>
+
+                        <div>
+                            <label class="block text-cyan-400 text-xs sm:text-sm press-start mb-2">GITHUB URL</label>
+                            <input 
+                                type="text"
+                                name="github_url"
+                                placeholder="https://github.com/username/repo"
+                                class="form-input w-full px-3 sm:px-4 py-2 rounded text-sm"
+                            >
+                        </div>
+
+                        <div>
+                            <label class="block text-cyan-400 text-xs sm:text-sm press-start mb-2">DEMO URL</label>
+                            <input 
+                                type="text"
+                                name="demo_url"
+                                placeholder="https://your-demo.com"
+                                class="form-input w-full px-3 sm:px-4 py-2 rounded text-sm"
+                            >
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-4 sm:mt-6">
+                            <button 
+                                type="submit"
+                                class="btn-neon flex-1 px-4 sm:px-6 py-2 rounded press-start text-xs sm:text-sm"
+                            >
+                                SUBMIT ✨
+                            </button>
+                            <button 
+                                type="button"
+                                id="closeFormBtn"
+                                class="flex-1 px-4 sm:px-6 py-2 rounded border-2 border-pink-500 text-pink-400 press-start text-xs sm:text-sm hover:bg-pink-500 hover:bg-opacity-20 transition"
+                            >
+                                CANCEL ✕
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <section>
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-2">
+                    <h2 class="press-start text-lg sm:text-2xl md:text-3xl neon-cyan">
+                        🏆 LEADERBOARD
+                    </h2>
+                    <p class="text-purple-400 text-xs sm:text-sm">Ranked by Hours Invested</p>
+                </div>
+
+                {% if projects %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                        {% for project in projects %}
+                            <div class="card-neon rounded-lg overflow-hidden group h-full flex flex-col">
+                                <div class="p-4 sm:p-6 flex-1 flex flex-col">
+                                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-start gap-2 mb-3 sm:mb-4">
+                                        <h3 class="text-base sm:text-lg font-bold text-cyan-300 flex-1">
+                                            {{ project.title }}
+                                        </h3>
+                                        <span class="hours-badge px-2 sm:px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">
+                                            ⏱️ {{ project.hours }}h
+                                        </span>
+                                    </div>
+
+                                    <p class="text-gray-300 text-xs sm:text-sm mb-3 sm:mb-4 flex-1">
+                                        {{ project.description }}
+                                    </p>
+
+                                    <div class="space-y-1 sm:space-y-2 mb-3 sm:mb-4 text-xs text-cyan-300">
+                                        <p>👤 <span class="font-bold">{{ project.submitter }}</span></p>
+                                        <p>📅 {{ project.created_at.strftime('%B %d, %Y') }}</p>
+                                    </div>
+                                </div>
+
+                                {% if project.github_url or project.demo_url %}
+                                    <div class="border-t border-cyan-500 border-opacity-30 px-4 sm:px-6 py-3 sm:py-4 bg-black bg-opacity-30 flex flex-col sm:flex-row gap-2 sm:gap-3">
+                                        {% if project.github_url %}
+                                            <a 
+                                                href="{{ project.github_url }}"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="flex-1 text-center px-2 sm:px-3 py-2 border border-cyan-500 text-cyan-400 rounded text-xs font-bold hover:bg-cyan-500 hover:bg-opacity-20 transition"
+                                            >
+                                                🔗 CODE
+                                            </a>
+                                        {% endif %}
+                                        {% if project.demo_url %}
+                                            <a 
+                                                href="{{ project.demo_url }}"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="flex-1 text-center px-2 sm:px-3 py-2 border border-pink-500 text-pink-400 rounded text-xs font-bold hover:bg-pink-500 hover:bg-opacity-20 transition"
+                                            >
+                                                🌐 DEMO
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="neon-border-pink card-neon rounded-lg p-6 sm:p-12 text-center">
+                        <p class="press-start text-lg sm:text-2xl neon-pink mb-3 sm:mb-4">NO PROJECTS YET</p>
+                        <p class="text-gray-400 text-sm sm:text-lg mb-4 sm:mb-6">Be the first to submit and claim your spot in the gallery! 🚀</p>
+                        <button 
+                            onclick="document.getElementById('formSection').classList.remove('hidden'); document.getElementById('toggleFormBtn').scrollIntoView({behavior: 'smooth'})"
+                            class="btn-neon px-4 sm:px-6 py-2 rounded press-start text-xs sm:text-sm"
+                        >
+                            SUBMIT NOW
+                        </button>
+                    </div>
+                {% endif %}
+            </section>
+        </main>
+
+        <footer class="border-t border-cyan-500 border-opacity-30 mt-12 sm:mt-20 py-6 sm:py-8 px-3 sm:px-4">
+            <div class="max-w-6xl mx-auto text-center">
+                <p class="text-cyan-400 text-xs tracking-wider mb-1 sm:mb-2">
+                    &lt; CHIPSTACK © 2026 /&gt;
+                </p>
+                <p class="text-gray-500 text-xs">Made with ❤️ for Hack Club | Level Up Your Skills</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const toggleBtn = document.getElementById('toggleFormBtn');
+        const closeBtn = document.getElementById('closeFormBtn');
+        const formSection = document.getElementById('formSection');
+
+        toggleBtn.addEventListener('click', () => {
+            formSection.classList.remove('hidden');
+            formSection.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        closeBtn.addEventListener('click', () => {
+            formSection.classList.add('hidden');
+        });
+
+        const form = formSection.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', () => {
+                document.body.style.opacity = '0.5';
+            });
+        }
+    </script>
+</body>
+</html>

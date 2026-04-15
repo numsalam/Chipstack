@@ -11,6 +11,12 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="grid-background">
+    <!-- Loading spinner -->
+    <div id="loader" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[10000] flex-col gap-4">
+        <div class="w-16 h-16 border-4 border-cyan-400/30 border-t-cyan-400 rounded-full animate-spin"></div>
+        <p class="press-start text-cyan-400 text-sm tracking-wider">Loading CHIPSTACK...</p>
+    </div>
+    <canvas id="confetti-canvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999;"></canvas>
     <div class="h-1 bg-gradient-to-r from-cyan-400 via-pink-500 to-purple-500"></div>
 
     <div class="min-h-screen">
@@ -23,7 +29,7 @@
                     <a href="{{ url_for('index') }}" class="nav-link text-xs sm:text-sm neon-cyan hover:neon-pink transition">
                         HOME
                     </a>
-                    <a href="#" onclick="alert('Leaderboard coming soon!'); return false;" class="nav-link text-xs sm:text-sm text-pink-400 hover:neon-pink opacity-60 transition">
+                    <a href="{{ url_for('leaderboard') }}" class="nav-link text-xs sm:text-sm neon-cyan hover:neon-pink transition">
                         LEADERBOARD
                     </a>
                 </div>
@@ -42,6 +48,18 @@
         </header>
 
         <main class="max-w-6xl mx-auto px-3 sm:px-4 py-8 sm:py-16">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="mb-8 sm:mb-12 space-y-3">
+                        {% for category, message in messages %}
+                            <div class="alert-message alert-{{ category }} rounded-lg p-4 sm:p-6 border-l-4" role="alert">
+                                <p class="press-start text-xs sm:text-sm">{{ message }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
             <section class="text-center mb-12 sm:mb-16">
                 <h2 class="press-start text-lg sm:text-3xl md:text-5xl mb-4 sm:mb-6 neon-pink leading-tight">
                     SHOWCASE YOUR MASTERPIECE
@@ -59,17 +77,7 @@
                 </button>
             </section>
 
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="mb-4 sm:mb-6 p-3 sm:p-4 rounded-lg alert-{{ category }}">
-                            <p class="press-start text-xs sm:text-sm">{{ message }}</p>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-
-            <section id="formSection" class="hidden mb-12 sm:mb-16">
+            <section id="formSection" class="mb-12 sm:mb-16">
                 <div class="neon-border card-neon rounded-lg p-4 sm:p-8 max-w-2xl mx-auto mx-3">
                     <h3 class="press-start text-lg sm:text-2xl neon-cyan mb-4 sm:mb-6">SUBMIT YOUR PROJECT</h3>
                     
@@ -167,15 +175,54 @@
                 </div>
 
                 {% if projects %}
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                    <div class="mb-6 sm:mb-8">
+                        <input 
+                            type="text"
+                            id="projectSearch"
+                            placeholder="🔍 Search projects by title or description..."
+                            class="search-bar w-full px-4 sm:px-6 py-3 rounded-lg text-sm"
+                        >
+                    </div>
+
+                    <div class="mb-6 sm:mb-8 flex flex-col sm:flex-row gap-2 sm:gap-3">
+                        <button 
+                            id="sortHourBtn"
+                            class="sort-btn active px-3 sm:px-4 py-2 rounded text-xs sm:text-sm font-bold press-start border-2 transition"
+                        >
+                            📊 HOURS
+                        </button>
+                        <button 
+                            id="sortNewestBtn"
+                            class="sort-btn px-3 sm:px-4 py-2 rounded text-xs sm:text-sm font-bold press-start border-2 transition"
+                        >
+                            ⏰ NEWEST
+                        </button>
+                        <button 
+                            id="sortOldestBtn"
+                            class="sort-btn px-3 sm:px-4 py-2 rounded text-xs sm:text-sm font-bold press-start border-2 transition"
+                        >
+                            📜 OLDEST
+                        </button>
+                    </div>
+
+                    <div class="mb-6 sm:mb-8 flex justify-center">
+                        <button 
+                            id="randomProjectBtn" 
+                            class="btn-neon px-6 sm:px-8 py-2 sm:py-3 rounded-lg press-start text-xs sm:text-sm font-bold shadow-lg hover:shadow-neon-pink hover:scale-105 transition-all duration-300 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-500 text-black border-2 border-yellow-400"
+                        >
+                            🎲 Random Jackpot Project
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 project-grid">
                         {% for project in projects %}
-                            <div class="card-neon rounded-lg overflow-hidden group h-full flex flex-col">
+                            <div class="card-neon rounded-lg overflow-hidden group h-full flex flex-col project-card" data-title="{{ project.title.lower() }}" data-description="{{ project.description.lower() }}" data-hours="{{ project.hours }}" data-created-at="{{ project.created_at.isoformat() }}">
                                 <div class="p-4 sm:p-6 flex-1 flex flex-col">
                                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-start gap-2 mb-3 sm:mb-4">
                                         <h3 class="text-base sm:text-lg font-bold text-cyan-300 flex-1">
                                             {{ project.title }}
                                         </h3>
-                                        <span class="hours-badge px-2 sm:px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">
+                                        <span class="hours-badge text-xs font-bold">
                                             ⏱️ {{ project.hours }}h
                                         </span>
                                     </div>
@@ -184,10 +231,23 @@
                                         {{ project.description }}
                                     </p>
 
-                                    <div class="space-y-1 sm:space-y-2 mb-3 sm:mb-4 text-xs text-cyan-300">
+                                    <div class="space-y-1 sm:space-y-2 mb-4 sm:mb-5 text-xs text-cyan-300">
                                         <p>👤 <span class="font-bold">{{ project.submitter }}</span></p>
                                         <p>📅 {{ project.created_at.strftime('%B %d, %Y') }}</p>
                                     </div>
+                                    
+                                    {% if project.tags %}
+                                    <div class="tags-section mb-4 sm:mb-5 flex flex-wrap gap-1 sm:gap-2">
+                                        {% for tag in project.tags.split(',') %}
+                                            <span class="tag-badge" data-tag="{{ tag.strip() }}">{{ tag.strip() }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <div class="hours-progress mt-auto">
+                                        <div class="hours-progress-bar" style="width: {{ [project.hours / 2, 100] | min }}%"></div>
+                                    </div>
+                                    <p class="hours-label text-center">{{ project.hours }}h / 200h MAX</p>
                                 </div>
 
                                 {% if project.github_url or project.demo_url %}
@@ -232,36 +292,281 @@
             </section>
         </main>
 
-        <footer class="border-t border-cyan-500 border-opacity-30 mt-12 sm:mt-20 py-6 sm:py-8 px-3 sm:px-4">
-            <div class="max-w-6xl mx-auto text-center">
-                <p class="text-cyan-400 text-xs tracking-wider mb-1 sm:mb-2">
-                    &lt; CHIPSTACK © 2026 /&gt;
-                </p>
-                <p class="text-gray-500 text-xs">Made with ❤️ for Hack Club | Level Up Your Skills</p>
+        <footer class="border-t border-cyan-500 border-opacity-30 mt-12 sm:mt-20 py-8 sm:py-12 px-3 sm:px-4">
+            <div class="max-w-6xl mx-auto">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 mb-8">
+                    <div class="text-center">
+                        <h3 class="press-start text-sm neon-cyan mb-3">CHIPSTACK</h3>
+                        <p class="text-xs text-gray-400">The Official<br/>Hack Club<br/>Jackpot Gallery</p>
+                    </div>
+                    
+                    <div class="text-center">
+                        <h3 class="press-start text-sm neon-pink mb-3">LINKS</h3>
+                        <div class="space-y-2">
+                            <p>
+                                <a href="https://jackpot.hackclub.com" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:text-pink-400 hover:underline text-xs transition">
+                                    🎰 Hack Club Jackpot
+                                </a>
+                            </p>
+                            <p>
+                                <a href="https://github.com/numsalam" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:text-pink-400 hover:underline text-xs transition">
+                                    💻 GitHub @numsalam
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <h3 class="press-start text-sm neon-yellow mb-3">BUILT WITH</h3>
+                        <p class="text-xs text-yellow-400 font-bold">Python • Flask<br/>Tailwind CSS<br/>SQLAlchemy</p>
+                    </div>
+                </div>
+                
+                <div class="border-t border-cyan-500 border-opacity-30 pt-6 text-center">
+                    <p class="text-cyan-400 text-xs tracking-wider mb-2 press-start">CHIPSTACK © 2026</p>
+                    <p class="text-gray-500 text-xs neon-cyan">Built live for Hack Club Jackpot • Session 3 complete • Made with Python + ❤️ by numaan</p>
+                </div>
             </div>
         </footer>
     </div>
 
     <script>
+        // Confetti animation class
+        class Confetti {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.particles = [];
+                this.animationId = null;
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+            }
+            
+            resizeCanvas() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+            
+            burst() {
+                const centerX = this.canvas.width / 2;
+                const centerY = this.canvas.height / 2;
+                const colors = ['#00d9ff', '#ff006e', '#ffff00'];
+                
+                for (let i = 0; i < 80; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const velocity = 3 + Math.random() * 8;
+                    this.particles.push({
+                        x: centerX,
+                        y: centerY,
+                        vx: Math.cos(angle) * velocity,
+                        vy: Math.sin(angle) * velocity - 5,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        size: 4 + Math.random() * 6,
+                        life: 1,
+                        decay: 0.015 + Math.random() * 0.015
+                    });
+                }
+                this.animate();
+            }
+            
+            animate() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.particles = this.particles.filter(p => p.life > 0);
+                
+                this.particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.2;
+                    p.life -= p.decay;
+                    
+                    const rgba = p.color.replace(')', `, ${p.life})`);
+                    this.ctx.fillStyle = rgba;
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                });
+                
+                if (this.particles.length > 0) {
+                    requestAnimationFrame(() => this.animate());
+                }
+            }
+        }
+        
+        const confettiCanvas = document.getElementById('confetti-canvas');
+        const confetti = new Confetti(confettiCanvas);
+        
+        const searchInput = document.getElementById('projectSearch');
+        const projectCards = document.querySelectorAll('.project-card');
+        const projectGrid = document.querySelector('.project-grid');
+
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase().trim();
+                let visibleCount = 0;
+
+                projectCards.forEach(card => {
+                    const title = card.dataset.title || '';
+                    const description = card.dataset.description || '';
+                    const matches = title.includes(searchTerm) || description.includes(searchTerm);
+                    
+                    if (!searchTerm || matches) {
+                        card.classList.remove('hidden-search');
+                        visibleCount++;
+                    } else {
+                        card.classList.add('hidden-search');
+                    }
+                });
+
+                if (visibleCount === 0 && searchTerm) {
+                    projectGrid.classList.add('no-results');
+                } else {
+                    projectGrid.classList.remove('no-results');
         const toggleBtn = document.getElementById('toggleFormBtn');
         const closeBtn = document.getElementById('closeFormBtn');
         const formSection = document.getElementById('formSection');
 
-        toggleBtn.addEventListener('click', () => {
-            formSection.classList.remove('hidden');
-            formSection.scrollIntoView({ behavior: 'smooth' });
-        });
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                formSection.classList.remove('form-hidden');
+                formSection.classList.add('form-visible');
+                setTimeout(() => {
+                    formSection.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+            });
+        }
 
-        closeBtn.addEventListener('click', () => {
-            formSection.classList.add('hidden');
-        });
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                formSection.classList.remove('form-visible');
+                formSection.classList.add('form-hidden');
+                setTimeout(() => {
+                    formSection.classList.remove('form-hidden');
+                }, 400);
+            });
+        }
 
-        const form = formSection.querySelector('form');
+        const form = formSection ? formSection.querySelector('form') : null;
         if (form) {
-            form.addEventListener('submit', () => {
+            // Client-side validation
+            form.addEventListener('submit', (e) => {
+                let isValid = true;
+                const errors = form.querySelectorAll('.validation-error');
+                errors.forEach(err => err.remove());
+
+                // Required fields
+                const required = form.querySelectorAll('[required]');
+                required.forEach(field => {
+                    if (!field.value.trim()) {
+                        showFieldError(field, 'This field is required');
+                        isValid = false;
+                    }
+                });
+
+                // Description min length
+                const desc = form.querySelector('textarea[name="description"]');
+                if (desc.value.trim().length < 10) {
+                    showFieldError(desc, 'Description must be at least 10 characters');
+                    isValid = false;
+                }
+
+                // Hours min 1
+                const hoursField = form.querySelector('input[name="hours"]');
+                const hours = parseFloat(hoursField.value);
+                if (isNaN(hours) || hours < 1) {
+                    showFieldError(hoursField, 'Hours must be at least 1');
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    e.preventDefault();
+                    return false;
+                }
+
+                confetti.burst();
                 document.body.style.opacity = '0.5';
             });
         }
+
+        function showFieldError(field, message) {
+            const error = document.createElement('div');
+            error.className = 'validation-error alert-error mt-1 p-2 text-xs rounded border-l-4 border-pink-500 bg-gradient-to-r from-pink-500/10 via-transparent to-pink-500/10 border-pink-500/50 text-pink-400 font-bold';
+            error.textContent = message;
+            field.style.borderColor = '#ff006e';
+            field.parentNode.appendChild(error);
+            field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            field.focus();
+        }
+
+        // Sorting functionality
+        const sortHourBtn = document.getElementById('sortHourBtn');
+        const sortNewestBtn = document.getElementById('sortNewestBtn');
+        const sortOldestBtn = document.getElementById('sortOldestBtn');
+        let currentSort = 'hours';
+
+        function sortCards(sortType) {
+            const cards = Array.from(projectCards);
+            
+            if (sortType === 'hours') {
+                cards.sort((a, b) => parseInt(b.dataset.hours) - parseInt(a.dataset.hours));
+            } else if (sortType === 'newest') {
+                cards.sort((a, b) => new Date(b.dataset.createdAt) - new Date(a.dataset.createdAt));
+            } else if (sortType === 'oldest') {
+                cards.sort((a, b) => new Date(a.dataset.createdAt) - new Date(b.dataset.createdAt));
+            }
+            
+            cards.forEach(card => projectGrid.appendChild(card));
+            currentSort = sortType;
+        }
+
+        function updateSortButtons(activeBtn) {
+            [sortHourBtn, sortNewestBtn, sortOldestBtn].forEach(btn => {
+                btn.classList.remove('active');
+            });
+            activeBtn.classList.add('active');
+        }
+
+        if (sortHourBtn) {
+            sortHourBtn.addEventListener('click', () => {
+                sortCards('hours');
+                updateSortButtons(sortHourBtn);
+            });
+        }
+
+        if (sortNewestBtn) {
+            sortNewestBtn.addEventListener('click', () => {
+                sortCards('newest');
+                updateSortButtons(sortNewestBtn);
+            });
+        }
+
+        if (sortOldestBtn) {
+            sortOldestBtn.addEventListener('click', () => {
+                sortCards('oldest');
+                updateSortButtons(sortOldestBtn);
+            });
+        }
+
+        // Random project selector
+        const randomBtn = document.getElementById('randomProjectBtn');
+        if (randomBtn) {
+            randomBtn.addEventListener('click', () => {
+                const visibleCards = Array.from(projectCards).filter(card => !card.classList.contains('hidden-search'));
+                if (visibleCards.length < 1) return;
+                const randomCard = visibleCards[Math.floor(Math.random() * visibleCards.length)];
+                randomCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                randomCard.classList.add('jackpot-glow');
+                setTimeout(() => randomCard.classList.remove('jackpot-glow'), 2000);
+                confetti.burst();
+            });
+        }
+
+        // Loading spinner hide after 800ms
+        setTimeout(() => {
+            document.getElementById('loader').style.opacity = '0';
+            document.getElementById('loader').style.pointerEvents = 'none';
+            setTimeout(() => document.getElementById('loader').remove(), 300);
+        }, 800);
     </script>
 </body>
 </html>
+

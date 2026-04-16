@@ -766,3 +766,26 @@ h1 {
     box-shadow: 0 0 20px rgba(255, 0, 110, 0.6);
 }
 
+/* Filter toggle buttons */
+.toggle-btn {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.toggle-btn.active {
+    background: linear-gradient(to right, rgba(0,217,255,0.3), rgba(255,0,110,0.3));
+    border-color: #00d9ff;
+    box-shadow: 0 0 20px rgba(0,217,255,0.5), inset 0 0 10px rgba(0,217,255,0.2);
+    text-shadow: 0 0 10px #00d9ff;
+    transform: scale(1.05);
+}
+
+.toggle-btn:hover {
+    transform: scale(1.02);
+}
+
+/* Filter hidden */
+.hidden-filter {
+    display: none !important;
+}
+

@@ -11,11 +11,13 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="grid-background">
-    <!-- Loading spinner -->
+    <!-- Loading spinner DISABLED for debugging -->
+    <!--
     <div id="loader" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[10000] flex-col gap-4">
         <div class="w-16 h-16 border-4 border-cyan-400/30 border-t-cyan-400 rounded-full animate-spin"></div>
         <p class="press-start text-cyan-400 text-sm tracking-wider">Loading CHIPSTACK...</p>
     </div>
+    -->
     <canvas id="confetti-canvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999;"></canvas>
     <div class="h-1 bg-gradient-to-r from-cyan-400 via-pink-500 to-purple-500"></div>
 
@@ -205,6 +207,15 @@
                         </button>
                     </div>
 
+                    <div class="mb-4 flex justify-center">
+                        <button 
+                            id="refreshGithubBtn"
+                            class="btn-neon px-6 sm:px-8 py-2 sm:py-3 rounded-lg press-start text-xs sm:text-sm font-bold shadow-lg hover:shadow-neon-cyan hover:scale-105 transition-all duration-300 bg-gradient-to-r from-purple-500 via-cyan-400 to-pink-500 text-black border-2 border-purple-400"
+                        >
+                            🔄 Refresh GitHub Data
+                        </button>
+                    </div>
+
                     <div class="mb-6 sm:mb-8 flex justify-center">
                         <button 
                             id="randomProjectBtn" 
@@ -214,9 +225,14 @@
                         </button>
                     </div>
 
+                    <div class="mb-6 sm:mb-8 flex justify-center gap-4">
+                        <button id="allProjectsBtn" class="toggle-btn active px-6 py-2 rounded-lg font-bold press-start text-sm border-2 border-cyan-400 text-cyan-300 bg-black/30 hover:bg-cyan-500/20 transition">All Projects</button>
+                        <button id="myProjectsBtn" class="toggle-btn px-6 py-2 rounded-lg font-bold press-start text-sm border-2 border-pink-400 text-pink-300 bg-black/30 hover:bg-pink-500/20 transition">My Projects</button>
+                    </div>
+
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 project-grid">
                         {% for project in projects %}
-                            <div class="card-neon rounded-lg overflow-hidden group h-full flex flex-col project-card" data-title="{{ project.title.lower() }}" data-description="{{ project.description.lower() }}" data-hours="{{ project.hours }}" data-created-at="{{ project.created_at.isoformat() }}">
+                            <div class="card-neon rounded-lg overflow-hidden group h-full flex flex-col project-card" data-title="{{ project.title.lower() }}" data-description="{{ project.description.lower() }}" data-hours="{{ project.hours }}" data-created-at="{{ project.created_at.isoformat() }}" data-submitter="{{ project.submitter.lower() }}">
                                 <div class="p-4 sm:p-6 flex-1 flex flex-col">
                                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-start gap-2 mb-3 sm:mb-4">
                                         <h3 class="text-base sm:text-lg font-bold text-cyan-300 flex-1">
@@ -231,9 +247,28 @@
                                         {{ project.description }}
                                     </p>
 
-                                    <div class="space-y-1 sm:space-y-2 mb-4 sm:mb-5 text-xs text-cyan-300">
+                                    <div class="space-y-1 sm:space-y-2 mb-3 sm:mb-4 text-xs text-cyan-300">
                                         <p>👤 <span class="font-bold">{{ project.submitter }}</span></p>
                                         <p>📅 {{ project.created_at.strftime('%B %d, %Y') }}</p>
+                                    </div>
+                                    
+                                    <!-- GitHub data -->
+                                    <div class="mb-3 sm:mb-4 text-xs neon-flex flex-wrap gap-2">
+                                        {% if project.stars %}
+                                            <span class="font-bold neon-cyan">⭐ {{ project.stars }}</span>
+                                        {% else %}
+                                            <span class="font-bold text-gray-400">⭐ —</span>
+                                        {% endif %}
+                                        {% if project.language %}
+                                            <span class="px-2 py-1 bg-gradient-to-r from-cyan-500/20 via-pink-500/20 to-purple-500/20 border border-cyan-400 text-neon-cyan rounded font-bold text-xs shadow-neon-glow"> {{ project.language }} </span>
+                                        {% else %}
+                                            <span class="px-2 py-1 bg-gray-800/50 border border-gray-600 text-gray-400 rounded font-bold text-xs"> — </span>
+                                        {% endif %}
+                                        {% if project.last_updated %}
+                                            <span class="neon-pink font-mono bg-black/30 px-2 py-1 rounded-sm">Last updated: {{ project.last_updated.strftime('%b %d') }}</span>
+                                        {% else %}
+                                            <span class="text-gray-400 font-mono bg-black/30 px-2 py-1 rounded-sm">Last updated: —</span>
+                                        {% endif %}
                                     </div>
                                     
                                     {% if project.tags %}
@@ -546,11 +581,73 @@
             });
         }
 
+        // GitHub refresh handler
+        const refreshBtn = document.getElementById('refreshGithubBtn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', async () => {
+                refreshBtn.disabled = true;
+                refreshBtn.innerHTML = '⏳ Refreshing...';
+                refreshBtn.classList.add('opacity-50');
+                try {
+                    const response = await fetch('/refresh', {method: 'POST'});
+                    if (response.ok) {
+                        confetti.burst();
+                        location.reload();
+                    } else {
+                        alert('Refresh failed. Check console.');
+                    }
+                } catch (e) {
+                    alert('Network error. Try again.');
+                } finally {
+                    refreshBtn.disabled = false;
+                    refreshBtn.innerHTML = '🔄 Refresh GitHub Data';
+                    refreshBtn.classList.remove('opacity-50');
+                }
+            });
+        }
+
+        // Projects filter toggle
+        let currentFilter = 'all';
+        const allBtn = document.getElementById('allProjectsBtn');
+        const myBtn = document.getElementById('myProjectsBtn');
+        if (allBtn && myBtn) {
+            function applyFilter(filter) {
+                projectCards.forEach(card => {
+                    const submitter = card.dataset.submitter || '';
+                    const isMyProject = submitter.includes('numaan');
+                    if (filter === 'all' || isMyProject) {
+                        card.classList.remove('hidden-filter');
+                    } else {
+                        card.classList.add('hidden-filter');
+                    }
+                });
+                [allBtn, myBtn].forEach(btn => btn.classList.remove('active'));
+                document.getElementById(filter === 'all' ? 'allProjectsBtn' : 'myProjectsBtn').classList.add('active');
+                currentFilter = filter;
+            }
+            allBtn.addEventListener('click', () => applyFilter('all'));
+            myBtn.addEventListener('click', () => applyFilter('my'));
+            // Update search to respect filter
+            if (searchInput) {
+                const originalHandler = searchInput._originalHandler || searchInput.oninput;
+                searchInput.addEventListener('input', (e) => {
+                    originalHandler(e);
+                    projectCards.forEach(card => {
+                        if (card.classList.contains('hidden-search') || card.classList.contains('hidden-filter')) {
+                            card.classList.add('hidden');
+                        } else {
+                            card.classList.remove('hidden');
+                        }
+                    });
+                });
+            }
+        }
+
         // Random project selector
         const randomBtn = document.getElementById('randomProjectBtn');
         if (randomBtn) {
             randomBtn.addEventListener('click', () => {
-                const visibleCards = Array.from(projectCards).filter(card => !card.classList.contains('hidden-search'));
+                const visibleCards = Array.from(projectCards).filter(card => !card.classList.contains('hidden-search') && !card.classList.contains('hidden-filter'));
                 if (visibleCards.length < 1) return;
                 const randomCard = visibleCards[Math.floor(Math.random() * visibleCards.length)];
                 randomCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -560,12 +657,6 @@
             });
         }
 
-        // Loading spinner hide after 800ms
-        setTimeout(() => {
-            document.getElementById('loader').style.opacity = '0';
-            document.getElementById('loader').style.pointerEvents = 'none';
-            setTimeout(() => document.getElementById('loader').remove(), 300);
-        }, 800);
     </script>
 </body>
 </html>
